@@ -1,10 +1,10 @@
 {
-  "version": "2c96cca-ca08f34b-cf35a68cc16a",
+  "version": "93a019e-5e7af421-cf35a68cc16a",
   "protected": true,
-  "access_check": "Q0M03K42Mv9u5miQ_M11teKoc0eFP0ccDCGr3TWkX8oxN6ZdA7XticMQOGmqxxtF5Y7CJvupgeyX",
+  "access_check": "T4hevZrlM_Uqe4j18vzr3ZlV6oC3aLqd_WSFNv3sCYzCsmjCMMMZX7Emjoi3p55mttHwaK9O7qmi",
   "access_aad": "medievalspy-access-check:cf35a68cc16a",
-  "game": "builds/2c96cca-ca08f34b-cf35a68cc16a/game.html",
-  "queen": "builds/2c96cca-ca08f34b-cf35a68cc16a/queen.html",
-  "enemy": "builds/2c96cca-ca08f34b-cf35a68cc16a/enemy.html",
+  "game": "builds/93a019e-5e7af421-cf35a68cc16a/game.html",
+  "queen": "builds/93a019e-5e7af421-cf35a68cc16a/queen.html",
+  "enemy": "builds/93a019e-5e7af421-cf35a68cc16a/enemy.html",
   "engine": "engine/godot-4.7.2-fc74679e3b97.wasm"
 }
