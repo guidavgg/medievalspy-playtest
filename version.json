@@ -1,9 +1,9 @@
 {
-  "version": "0f65403-29352de9-cf35a68cc16a",
+  "version": "b326a2f-a7bcb08d-cf35a68cc16a",
   "protected": true,
-  "access_check": "Bx5ORd8eQ8W8M5599ahAw8iJIOpSv9KllZOGQRupdT10pIFV4N0gc1Eidr-_PIdAU-LSAhiZvN91",
+  "access_check": "j9JFQuMZKxnaYBD2jqWwndMOXA6RoWtmGgV4fp6eA3jQVeRCbNVvBSO-3jgpScX7nRtiYpzUs7Tt",
   "access_aad": "medievalspy-access-check:cf35a68cc16a",
-  "game": "builds/0f65403-29352de9-cf35a68cc16a/game.html",
-  "queen": "builds/0f65403-29352de9-cf35a68cc16a/queen.html",
+  "game": "builds/b326a2f-a7bcb08d-cf35a68cc16a/game.html",
+  "queen": "builds/b326a2f-a7bcb08d-cf35a68cc16a/queen.html",
   "engine": "engine/godot-4.7.2-fc74679e3b97.wasm"
 }

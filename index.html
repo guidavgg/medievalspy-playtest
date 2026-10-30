@@ -34,7 +34,7 @@
     <label for="access-code">Ton code d’accès</label>
     <input id="access-code" type="password" autocomplete="off" spellcheck="false" required maxlength="43">
     <label><input type="checkbox" id="remember"> Garder le code dans ce navigateur</label>
-    <button id="unlock" type="submit">Ouvrir le jeu</button>
+    <button id="unlock" type="submit" disabled>Ouvrir le jeu</button>
     <div id="access-error" role="alert"></div>
   </form>
 </section>
@@ -67,6 +67,7 @@
       manifest=await response.json();
       if(manifest.protected!==true)throw Error('Version sans protection refusée.');
       document.querySelector('#version').textContent='Version '+manifest.version;
+      document.querySelector('#unlock').disabled=false;
       const remembered=sessionStorage.getItem('medievalspy-access')||localStorage.getItem('medievalspy-access')||'';
       if(remembered){try{key=await validate(remembered);show();return}catch(_){key=null;sessionStorage.removeItem('medievalspy-access');localStorage.removeItem('medievalspy-access')}}
       access.hidden=false;status.hidden=true;codeInput.focus();
