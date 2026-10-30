@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedievalSpy — aperçu privé</title>
+<style>
+  :root{color-scheme:dark;font:14px system-ui,sans-serif;background:#0b1522;color:#ece9e1}
+  *{box-sizing:border-box}body{margin:0;height:100dvh;display:flex;flex-direction:column}
+  header{min-height:48px;display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid #66593f;background:#101e2e}
+  strong{margin-right:10px;font:18px Georgia,serif}button{border:1px solid #716044;border-radius:4px;background:#1c2b40;color:#ece9e1;padding:7px 12px;cursor:pointer}
+  button:hover,button[aria-pressed=true]{border-color:#d8bc78;background:#263a51}button:disabled{opacity:.45;cursor:default}small{margin-left:auto;color:#b5c1cf}
+  #status{position:absolute;top:60px;left:20px;padding:12px;background:#101e2e;border-radius:4px}
+  iframe{display:block;width:100%;flex:1;border:0;min-height:0;background:#0b1522}
+  #access{position:absolute;inset:48px 0 0;display:grid;place-items:center;background:#0b1522}
+  #access[hidden]{display:none}.card{width:min(440px,90vw);padding:30px;border:1px solid #af905d;border-radius:6px;background:#101e2e;box-shadow:0 12px 30px #0005}
+  h1{font:28px Georgia,serif;margin-top:0}p{line-height:1.6;color:#b5c1cf}.card label{display:block;margin:18px 0 8px}
+  input[type=password]{width:100%;padding:12px;border:1px solid #716044;background:#0b1522;color:#ece9e1;border-radius:4px;font:16px system-ui}
+  #unlock{width:100%;margin-top:16px;padding:12px}#access-error{color:#da777a;min-height:20px;margin-top:12px}
+  @media(max-width:700px){header{flex-wrap:wrap}small{margin-left:0}strong{display:none}}
+</style>
+<header>
+  <strong>MedievalSpy</strong>
+  <button id="game" disabled>Jouer</button>
+  <button id="queen" disabled>Interface de la reine</button>
+  <button id="refresh" disabled>Charger la dernière version</button>
+  <small id="version">Connexion…</small>
+</header>
+<div id="status">Chargement de la version…</div>
+<iframe id="playtest" title="MedievalSpy — jeu 3D" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+<section id="access">
+  <form class="card" id="unlock-form">
+    <h1>Aperçu privé</h1>
+    <p>Le jeu est chiffré. Ton code le déchiffre dans ce navigateur ; il n’est pas envoyé à l’hébergement.</p>
+    <label for="access-code">Ton code d’accès</label>
+    <input id="access-code" type="password" autocomplete="off" spellcheck="false" required maxlength="43">
+    <label><input type="checkbox" id="remember"> Garder le code dans ce navigateur</label>
+    <button id="unlock" type="submit">Ouvrir le jeu</button>
+    <div id="access-error" role="alert"></div>
+  </form>
+</section>
+<script>
+  const frame=document.querySelector('#playtest'), status=document.querySelector('#status'), access=document.querySelector('#access');
+  const errorBox=document.querySelector('#access-error'), codeInput=document.querySelector('#access-code');
+  let manifest=null, key=null, mode=new URLSearchParams(location.search).get('view')==='queen'?'queen':'game';
+  function bytes(value){let raw=value.replace(/-/g,'+').replace(/_/g,'/');raw+='='.repeat((4-raw.length%4)%4);return Uint8Array.from(atob(raw),c=>c.charCodeAt(0))}
+  async function validate(code){
+    if(!/^[A-Za-z0-9_-]{43}$/.test(code))throw Error('Code invalide.');
+    const candidate=await crypto.subtle.importKey('raw',bytes(code),'AES-GCM',false,['decrypt']);
+    const sealed=bytes(manifest.access_check);
+    const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:sealed.slice(0,12),additionalData:new TextEncoder().encode(manifest.access_aad)},candidate,sealed.slice(12));
+    if(new TextDecoder().decode(plain)!=='medievalspy-preview-access-v1')throw Error('Code invalide.');
+    return candidate;
+  }
+  function show(){
+    if(!manifest||!key)return;
+    access.hidden=true;status.hidden=false;status.textContent='Chargement du jeu…';
+    for(const id of ['game','queen','refresh'])document.querySelector('#'+id).disabled=false;
+    document.querySelector('#game').setAttribute('aria-pressed',mode==='game');
+    document.querySelector('#queen').setAttribute('aria-pressed',mode==='queen');
+    const address=new URL(location.href);address.searchParams.set('view',mode);address.hash='';history.replaceState(null,'',address);
+    frame.src=manifest[mode];
+  }
+  async function latest(){
+    try{
+      const response=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
+      if(!response.ok)throw Error('Version indisponible ('+response.status+')');
+      manifest=await response.json();
+      if(manifest.protected!==true)throw Error('Version sans protection refusée.');
+      document.querySelector('#version').textContent='Version '+manifest.version;
+      const remembered=sessionStorage.getItem('medievalspy-access')||localStorage.getItem('medievalspy-access')||'';
+      if(remembered){try{key=await validate(remembered);show();return}catch(_){key=null;sessionStorage.removeItem('medievalspy-access');localStorage.removeItem('medievalspy-access')}}
+      access.hidden=false;status.hidden=true;codeInput.focus();
+    }catch(error){status.hidden=false;status.textContent='Le chargement a échoué : '+error.message}
+  }
+  document.querySelector('#unlock-form').onsubmit=async event=>{
+    event.preventDefault();errorBox.textContent='';
+    if(!manifest)return;
+    try{
+      const code=codeInput.value.trim();key=await validate(code);sessionStorage.setItem('medievalspy-access',code);
+      if(document.querySelector('#remember').checked)localStorage.setItem('medievalspy-access',code);
+      codeInput.value='';show();
+    }catch(_){key=null;errorBox.textContent='Code invalide.'}
+  };
+  window.addEventListener('message',event=>{
+    if(key&&event.source===frame.contentWindow&&event.origin===location.origin&&event.data?.type==='medievalspy-key-request'){
+      frame.contentWindow.postMessage({type:'medievalspy-key',key},location.origin);
+    }
+  });
+  document.querySelector('#game').onclick=()=>{mode='game';show()};
+  document.querySelector('#queen').onclick=()=>{mode='queen';show()};
+  document.querySelector('#refresh').onclick=latest;
+  frame.onload=()=>{if(manifest&&key){status.hidden=true;frame.focus()}};
+  latest();
+</script>
+</html>
