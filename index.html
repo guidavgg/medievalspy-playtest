@@ -61,7 +61,9 @@
     document.querySelector('#queen').setAttribute('aria-pressed',mode==='queen');
     document.querySelector('#enemy').setAttribute('aria-pressed',mode==='enemy');
     const address=new URL(location.href);address.searchParams.set('view',mode);address.hash='';history.replaceState(null,'',address);
-    frame.src=manifest[mode];
+    const target=new URL(manifest[mode],location.href);
+    if(new URLSearchParams(location.search).get('smoke')==='1')target.searchParams.set('smoke','1');
+    frame.src=target.href;
   }
   async function latest(){
     try{
