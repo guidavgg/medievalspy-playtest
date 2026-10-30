@@ -22,6 +22,7 @@
   <strong>MedievalSpy</strong>
   <button id="game" disabled>Jouer</button>
   <button id="queen" disabled>Interface de la reine</button>
+  <button id="enemy" disabled>Tenue rouge</button>
   <button id="refresh" disabled>Charger la dernière version</button>
   <small id="version">Connexion…</small>
 </header>
@@ -41,7 +42,8 @@
 <script>
   const frame=document.querySelector('#playtest'), status=document.querySelector('#status'), access=document.querySelector('#access');
   const errorBox=document.querySelector('#access-error'), codeInput=document.querySelector('#access-code');
-  let manifest=null, key=null, mode=new URLSearchParams(location.search).get('view')==='queen'?'queen':'game';
+  const requestedView=new URLSearchParams(location.search).get('view');
+  let manifest=null, key=null, mode=['queen','enemy'].includes(requestedView)?requestedView:'game';
   function bytes(value){let raw=value.replace(/-/g,'+').replace(/_/g,'/');raw+='='.repeat((4-raw.length%4)%4);return Uint8Array.from(atob(raw),c=>c.charCodeAt(0))}
   async function validate(code){
     if(!/^[A-Za-z0-9_-]{43}$/.test(code))throw Error('Code invalide.');
@@ -54,9 +56,10 @@
   function show(){
     if(!manifest||!key)return;
     access.hidden=true;status.hidden=false;status.textContent='Chargement du jeu…';
-    for(const id of ['game','queen','refresh'])document.querySelector('#'+id).disabled=false;
+    for(const id of ['game','queen','enemy','refresh'])document.querySelector('#'+id).disabled=false;
     document.querySelector('#game').setAttribute('aria-pressed',mode==='game');
     document.querySelector('#queen').setAttribute('aria-pressed',mode==='queen');
+    document.querySelector('#enemy').setAttribute('aria-pressed',mode==='enemy');
     const address=new URL(location.href);address.searchParams.set('view',mode);address.hash='';history.replaceState(null,'',address);
     frame.src=manifest[mode];
   }
@@ -89,6 +92,7 @@
   });
   document.querySelector('#game').onclick=()=>{mode='game';show()};
   document.querySelector('#queen').onclick=()=>{mode='queen';show()};
+  document.querySelector('#enemy').onclick=()=>{mode='enemy';show()};
   document.querySelector('#refresh').onclick=latest;
   frame.onload=()=>{if(manifest&&key){status.hidden=true;frame.focus()}};
   latest();
